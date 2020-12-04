@@ -9,7 +9,7 @@ fun main() {
         "2-9 c: ccccccccc",
     )
 
-    enforcePolicies(pw)
+    println(enforcePolicies(pw))
 
     val f = enforcePolicies(getResourceAsText("data2.txt"))
 
@@ -25,8 +25,16 @@ private fun enforcePolicies(pw: List<String>): List<Policy> {
             Policy(IntRange(foo[0], foo[1]), it[1].dropLast(1), it[2])
         }
         .filter { policy ->
-            val f = policy.password.filter { it.toString() == policy.letter }
-            f.length in policy.range
+
+            if(policy.password.length < policy.range.last) {
+                false
+            } else {
+
+                val f = policy.password[policy.range.first-1].toString() == policy.letter
+                val l = policy.password[policy.range.last-1].toString() == policy.letter
+
+                f xor l
+            }
         }
 }
 
