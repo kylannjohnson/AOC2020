@@ -20,9 +20,14 @@ fun main() {
     val input2 = getResourceAsText("data3.txt")
 
     val map = input2.parse()
-        .multiply(35).also { it.forEach(::println) }
+        .multiply(105).also { it.forEach(::println) }
 
-    val count = map.traverseAndCount(3, 1)
+    val points = listOf(1 to 1, 3 to 1, 5 to 1, 7 to 1, 1 to 2)
+    val points1 = listOf(1 to 1, 3 to 1, 5 to 1, 7 to 1, 1 to 2)
+
+    val count = points1.map { pair ->
+        map.traverseAndCount(pair.first, pair.second)
+    }.fold(1) { acc, i -> acc * i }
 
     println("Count $count")
 }
@@ -38,9 +43,9 @@ private fun List<List<Space>>.traverseAndCount(right: Int, down: Int): Int {
 
     val height = this.size
 
-    while(coord.first < height) {
+    while (coord.first < height) {
         println(coord)
-        if(this[coord.first][coord.second] == Space.TREE) {
+        if (this[coord.first][coord.second] == Space.TREE) {
             count++
         }
 
