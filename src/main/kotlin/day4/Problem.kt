@@ -19,6 +19,21 @@ fun main() {
         "iyr:2011 ecl:brn hgt:59in",
     )
 
+    val validPassports = listOf(
+        "pid:087499704 hgt:74in ecl:grn iyr:2012 eyr:2030 byr:1980",
+        "hcl:#623a2f",
+        "",
+        "eyr:2029 ecl:blu cid:129 byr:1989",
+        "iyr:2014 pid:896056539 hcl:#a97842 hgt:165cm",
+        "",
+        "hcl:#888785",
+        "hgt:164cm byr:2001 iyr:2015 cid:88",
+        "pid:545766238 ecl:hzl",
+        "eyr:2022",
+        "",
+        "iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021 pid:093154719",
+    )
+
     val data = getResourceAsText("data4.txt")
 
     val valid = data.parse()
@@ -35,7 +50,7 @@ private fun Passport.containsRequiredCategories(): Boolean {
 }
 
 fun List<String>.parse(): List<Passport> {
-    val operation =  fold(Passport() to listOf<Passport>()) { acc, s ->
+    val operation = fold(Passport() to listOf<Passport>()) { acc, s ->
         if (s.isEmpty()) {
             Passport() to acc.second + acc.first
         } else {
@@ -50,15 +65,21 @@ data class Passport(val fields: List<PassportField> = emptyList())
 
 data class PassportField(val category: Category, val value: String)
 
-enum class Category(val value: String) {
-    BYR("byr"),
-    IYR("iyr"),
-    EYR("eyr"),
-    HGT("hgt"),
-    HCL("hcl"),
-    ECL("ecl"),
-    PID("pid"),
-    CID("cid")
+enum class Category(val value: String, val validator: (String) -> Boolean) {
+    BYR("byr", { value -> value.toInt() in 1920..2002 }),
+    IYR("iyr", { value -> value.toInt() in 2010..2020 }),
+    EYR("eyr", { value -> value.toInt() in 2020..2030 }),
+    HGT("hgt", { value ->
+        when {
+            value.takeLast(2) == "in" -> value.dropLast(2).toInt() in 59..76
+            value.takeLast(2) == "cm" -> value.dropLast(2).toInt() in 150..193
+            else -> false
+        }
+    }),
+    HCL("hcl", { value -> value.matches("\\#[a-f|0-9]{6}".toRegex()) }),
+    ECL("ecl", { value -> value in listOf("amb", "blu", "brn", "gry", "grn", "hzl", "oth") }),
+    PID("pid", { value -> value.length == 9 && value.fold(true) { acc, c -> acc && c.isDigit() } }),
+    CID("cid", { _ -> true })
 }
 
 val requiredCategories = Category.values().filter { it != Category.CID }
@@ -71,10 +92,12 @@ fun Passport.addFields(field: List<PassportField>): Passport {
 fun String.toPassportField(): List<PassportField> {
     return this.split(" ")
         .map { it.split(":") }
-        .map { fieldAndValue ->
-            PassportField(
-                Category.values().first { it.value == fieldAndValue[0] },
-                fieldAndValue[1]
-            )
+        .mapNotNull { fieldAndValue ->
+            val c = Category.values().first { it.value == fieldAndValue[0] }
+            val isValid = c.validator(fieldAndValue[1])
+            println("$c ${fieldAndValue[1]}   $isValid")
+            if (isValid) {
+                PassportField(c, fieldAndValue[1])
+            } else null
         }
 }
