@@ -12,7 +12,16 @@ fun main() {
 //    println(seat1.findSeat())
 //    println(seat2.findSeat())
 //    println(seat3.findSeat())
-    println(getResourceAsText("data5.txt").map { it.findSeat() }.maxByOrNull { it.seatId })
+    val allSeats = getResourceAsText("data5.txt").map { it.findSeat() }
+    val backRow = allSeats
+        .maxByOrNull { it.row }
+//    println(backRow)
+    allSeats.groupBy { it.row }.toSortedMap()
+        .filterValues { it.size < 8 }
+
+
+    allSeats.filter{ it.row == 89}.forEach(::println)
+
 }
 
 fun String.findSeat(): Seat {
