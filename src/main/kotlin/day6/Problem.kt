@@ -4,7 +4,7 @@ import util.getResourceAsText
 
 fun main() {
 
-    listOf(
+    val input = listOf(
         "abc",
         "",
         "a",
@@ -21,8 +21,9 @@ fun main() {
         "",
         "b"
     )
+//
     val total = getResourceAsText("data6.txt").toGroups()
-        .map { it.answers.size }
+        .map { it.answers.values.filter { v -> v == it.people }.size }
         .sum()
 
     println(total)
@@ -37,9 +38,15 @@ private fun List<String>.toGroups(): List<Group> {
     }
 }
 
-data class Group(val answers: Map<String, Boolean> = emptyMap())
+data class Group(val people: Int = 0, val answers: Map<String, Int> = emptyMap())
 
 fun Group.addTo(newQuestions: List<String>): Group {
-    val map = this.answers.toMutableMap().apply { putAll(newQuestions.map { it to true }) }
-    return Group(map)
+    val current = this.answers.toMutableMap()
+
+    newQuestions.forEach {
+        current[it] = if (current.containsKey(it)) {
+            current[it]!! + 1
+        } else 1
+    }
+    return copy(people = people + 1, answers = current)
 }
